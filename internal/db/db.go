@@ -24,8 +24,7 @@ func (db database) Connect() (*sql.DB, error) {
 	if cErr != nil {
 		return nil, cErr
 	}
-	pErr := conn.Ping()
-	if pErr != nil {
+	if pErr := conn.Ping(); pErr != nil {
 		return nil, pErr
 	}
 	return conn, nil

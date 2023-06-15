@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/bochkov/m17go/internal/api"
@@ -34,5 +37,31 @@ func main() {
 
 	mux := http.NewServeMux()
 	api.ConfigureController(db, mux)
-	log.Fatal(http.ListenAndServe(":5000", mux))
+	srv := &http.Server{Addr: ":3000", Handler: mux}
+
+	notifyCtx, nStop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer nStop()
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen and serve: %v", err)
+		}
+	}()
+	log.Printf("Listening on %v:%v", host, port)
+
+	<-notifyCtx.Done()
+	log.Printf("shutting down server gracefully")
+
+	// close HTTP connections
+	stopCtx, sStop := context.WithTimeout(context.Background(), 5*time.Second)
+	defer sStop()
+	if err := srv.Shutdown(stopCtx); err != nil {
+		log.Fatalf("shutdown: %v", err)
+	}
+	// close DB connections
+	if err := db.Close(); err != nil {
+		log.Fatalf("shutdown db conn: %v", err)
+	}
+
+	log.Printf("server shutdown properly")
 }
