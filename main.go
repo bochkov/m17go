@@ -37,7 +37,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	api.ConfigureController(db, mux)
-	srv := &http.Server{Addr: ":3000", Handler: mux}
+	srv := &http.Server{Addr: ":5000", Handler: mux}
 
 	notifyCtx, nStop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer nStop()
