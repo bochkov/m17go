@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-type member struct {
+type Member struct {
 	Id         int    `json:"id"`
 	Name       string `json:"name"`
 	Instrument string `json:"instrument"`
@@ -20,29 +20,28 @@ func NewMembers(db *sql.DB) *Members {
 	return &Members{db: db}
 }
 
-func (members Members) FindAll() []member {
-	result := make([]member, 0)
-	rows, err := members.db.
-		Query(`SELECT m.id, m.name, i.text, m.actual 
-			FROM members m, instrument i 
-			WHERE m.instrument = i.id 
-			ORDER BY m.weight`)
+func (members Members) FindAll() []Member {
+	queryStr := `SELECT me.id, me.name, inst.text, me.actual 
+				 FROM members me, instrument inst 
+				 WHERE me.instrument = inst.id 
+				 ORDER BY me.weight`
+	result := make([]Member, 0)
+	rows, err := members.db.Query(queryStr)
 	if err != nil {
 		log.Println(err)
 		return result
 	}
 	defer rows.Close()
-
 	for rows.Next() {
-		var m member
+		var m Member
 		rows.Scan(&m.Id, &m.Name, &m.Instrument, &m.Actual)
 		result = append(result, m)
 	}
 	return result
 }
 
-func (members Members) FindActual() []member {
-	var result []member
+func (members Members) FindActual() []Member {
+	var result []Member
 	for _, mem := range members.FindAll() {
 		if mem.Actual {
 			result = append(result, mem)

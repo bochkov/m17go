@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type database struct {
+type Database struct {
 	host     string
 	port     string
 	dbname   string
@@ -13,11 +13,11 @@ type database struct {
 	password string
 }
 
-func NewDatabase(host, port, dbname, user, password string) *database {
-	return &database{host: host, port: port, dbname: dbname, user: user, password: password}
+func NewDatabase(host, port, dbname, user, password string) *Database {
+	return &Database{host: host, port: port, dbname: dbname, user: user, password: password}
 }
 
-func (db database) Connect() (*sql.DB, error) {
+func (db Database) Connect() (*sql.DB, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		db.host, db.port, db.dbname, db.user, db.password)
 	conn, cErr := sql.Open("postgres", connStr)

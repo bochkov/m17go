@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type gig struct {
+type Gig struct {
 	Id    int       `json:"id"`
 	Date  time.Time `json:"date"`
 	Desc  string    `json:"desc"`
@@ -22,20 +22,20 @@ func NewGigs(db *sql.DB) *Gigs {
 	return &Gigs{db: db}
 }
 
-func (gigs Gigs) Find(since time.Time) []gig {
-	result := make([]gig, 0)
-	rows, err := gigs.db.
-		Query(`SELECT g.* 
-			FROM gigs g 
-			WHERE g.dt >= $1 
-			ORDER BY g.dt desc, g.tm`, since)
+func (gigs Gigs) Find(since time.Time) []Gig {
+	queryStr := `SELECT g.id, g.dt, g.tm, g.place, g.desc, g.url
+			     FROM gigs g 
+			     WHERE g.dt >= $1 
+			     ORDER BY g.dt desc, g.tm`
+	result := make([]Gig, 0)
+	rows, err := gigs.db.Query(queryStr, since)
 	if err != nil {
 		log.Println(err)
 		return result
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var g gig
+		var g Gig
 		var placeId int
 		var dt time.Time
 		var tm time.Time

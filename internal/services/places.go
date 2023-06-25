@@ -20,8 +20,9 @@ func NewPlaces(db *sql.DB) *Places {
 }
 
 func (places Places) FindById(id int) (p Place) {
+	queryStr := "SELECT * FROM places WHERE id = $1"
 	err := places.db.
-		QueryRow("SELECT * FROM places WHERE id = $1", id).
+		QueryRow(queryStr, id).
 		Scan(&p.Id, &p.Name, &p.Address, &p.Link, &p.Slug, &p.InvertedLogo)
 	if err != nil {
 		return Place{}
