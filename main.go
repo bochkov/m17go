@@ -34,6 +34,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
+	log.Printf("Connected to %v:%v\n", host, port)
 
 	mux := http.NewServeMux()
 	api.ConfigureController(database, mux)
@@ -47,7 +48,7 @@ func main() {
 			log.Fatalf("listen and serve: %v\n", err)
 		}
 	}()
-	log.Printf("Listening on %v:%v\n", host, port)
+	log.Printf("Listening on :5000")
 
 	<-notifyCtx.Done()
 	log.Println("shutting down server gracefully")
