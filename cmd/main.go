@@ -9,9 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bochkov/m17go/internal/api"
-	"github.com/bochkov/m17go/internal/db"
-	_ "github.com/lib/pq"
+	"github.com/bochkov/m17go/internal/albums"
+	"github.com/bochkov/m17go/internal/gigs"
+	"github.com/bochkov/m17go/internal/lib/db"
+	"github.com/bochkov/m17go/internal/lib/router"
+	"github.com/bochkov/m17go/internal/link"
+	"github.com/bochkov/m17go/internal/members"
+	"github.com/bochkov/m17go/internal/place"
 )
 
 func main() {
@@ -30,16 +34,32 @@ func main() {
 		log.Fatalln("No env DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD. Exiting.")
 	}
 
-	database, err := db.NewDatabase(host, port, dbname, user, password).Connect()
+	dbConn, err := db.NewDatabase(host, port, dbname, user, password)
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
 	log.Printf("Connected to %v:%v\n", host, port)
 
-	mux := http.NewServeMux()
-	api.ConfigureController(database, mux)
-	srv := &http.Server{Addr: ":5000", Handler: loggingWare(mux)}
+	albums := albums.NewHandler(
+		albums.NewService(
+			albums.NewRepository(dbConn.GetDB()),
+			link.NewRepository(dbConn.GetDB()),
+		),
+	)
+	gigs := gigs.NewHandler(
+		gigs.NewService(
+			gigs.NewRepository(dbConn.GetDB()),
+			place.NewRepository(dbConn.GetDB()),
+		),
+	)
+	members := members.NewHandler(
+		members.NewService(
+			members.NewRepository(dbConn.GetDB()),
+		),
+	)
 
+	engine := router.InitRouter(albums, gigs, members)
+	srv := &http.Server{Addr: ":5000", Handler: engine}
 	notifyCtx, nStop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer nStop()
 
@@ -49,9 +69,8 @@ func main() {
 		}
 	}()
 	log.Printf("Listening on :5000")
-
 	<-notifyCtx.Done()
-	log.Println("shutting down server gracefully")
+	log.Println("shutting down")
 
 	// close HTTP connections
 	stopCtx, sStop := context.WithTimeout(context.Background(), 5*time.Second)
@@ -60,42 +79,9 @@ func main() {
 		log.Fatalf("shutdown: %v\n", err)
 	}
 	// close DB connections
-	if err := database.Close(); err != nil {
+	if err := dbConn.Close(); err != nil {
 		log.Fatalf("shutdown db conn: %v\n", err)
 	}
 
-	log.Println("server shutdown properly")
-}
-
-func loggingWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		o := &responseWrapper{ResponseWriter: w}
-		next.ServeHTTP(o, r)
-		log.Printf("%s %s %s %s %d %s %s", r.RemoteAddr, r.Method, r.URL, r.Proto, o.status, r.Referer(), r.UserAgent())
-	})
-}
-
-type responseWrapper struct {
-	http.ResponseWriter
-	status      int
-	written     int64
-	wroteHeader bool
-}
-
-func (o *responseWrapper) Write(p []byte) (n int, err error) {
-	if !o.wroteHeader {
-		o.WriteHeader(http.StatusOK)
-	}
-	n, err = o.ResponseWriter.Write(p)
-	o.written += int64(n)
-	return
-}
-
-func (o *responseWrapper) WriteHeader(code int) {
-	o.ResponseWriter.WriteHeader(code)
-	if o.wroteHeader {
-		return
-	}
-	o.wroteHeader = true
-	o.status = code
+	log.Println("server is shutdown")
 }

@@ -1,7 +1,7 @@
 FROM golang:alpine AS builder
 WORKDIR /build
 COPY . /build/
-RUN go mod tidy && go build -o m17 -ldflags "-s -w"
+RUN go mod tidy && go build -o m17 -ldflags "-s -w" ./cmd/main.go
 
 FROM scratch
 COPY --from=builder /build/m17 /
