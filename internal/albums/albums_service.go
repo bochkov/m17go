@@ -6,18 +6,21 @@ import (
 	"time"
 
 	"github.com/bochkov/m17go/internal/link"
+	"github.com/bochkov/m17go/internal/songs"
 )
 
 type service struct {
 	albums  Repository
 	links   link.Repository
+	songs   songs.Repository
 	timeout time.Duration
 }
 
-func NewService(albums Repository, links link.Repository) Service {
+func NewService(albums Repository, links link.Repository, songs songs.Repository) Service {
 	return &service{
 		albums,
 		links,
+		songs,
 		time.Duration(2) * time.Second,
 	}
 }
@@ -125,4 +128,15 @@ func (s *service) AllAlbums(c context.Context) ([]RsAlbum, error) {
 		}
 	}
 	return result, nil
+}
+
+func (s *service) SongsInAlbum(c context.Context, albumId int) ([]songs.Song, error) {
+	ctx, cancel := context.WithTimeout(c, s.timeout)
+	defer cancel()
+
+	songs, err := s.songs.FindAllForAlbum(ctx, albumId)
+	if err != nil {
+		return nil, err
+	}
+	return songs, nil
 }

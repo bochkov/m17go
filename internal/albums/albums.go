@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/bochkov/m17go/internal/link"
+	"github.com/bochkov/m17go/internal/songs"
 )
 
 type MType int16
@@ -43,4 +44,5 @@ type Service interface {
 	OnlyAlbums(ctx context.Context) ([]RsAlbum, error)
 	OnlySingles(ctx context.Context) ([]RsAlbum, error)
 	Promo(ctx context.Context) (*RsAlbum, error)
+	SongsInAlbum(ctx context.Context, albumId int) ([]songs.Song, error)
 }

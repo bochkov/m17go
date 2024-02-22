@@ -32,6 +32,12 @@ func (h *Handler) OnlySingles(w http.ResponseWriter, r *http.Request) {
 	util.DefaultHandle(w, r, res, err)
 }
 
+func (h *Handler) Songs(w http.ResponseWriter, r *http.Request) {
+	albumId := r.Context().Value("albumId").(int)
+	res, err := h.Service.SongsInAlbum(r.Context(), albumId)
+	util.DefaultHandle(w, r, res, err)
+}
+
 // Promo handles "/api/v1/promo"
 func (h *Handler) Promo(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Service.Promo(r.Context())

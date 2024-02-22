@@ -16,6 +16,7 @@ import (
 	"github.com/bochkov/m17go/internal/link"
 	"github.com/bochkov/m17go/internal/members"
 	"github.com/bochkov/m17go/internal/place"
+	"github.com/bochkov/m17go/internal/songs"
 )
 
 func main() {
@@ -44,6 +45,7 @@ func main() {
 		albums.NewService(
 			albums.NewRepository(dbConn.GetDB()),
 			link.NewRepository(dbConn.GetDB()),
+			songs.NewRepository(dbConn.GetDB()),
 		),
 	)
 	gigs := gigs.NewHandler(
