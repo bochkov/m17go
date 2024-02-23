@@ -46,3 +46,18 @@ func (r *repository) FindAll(ctx context.Context) ([]Album, error) {
 	}
 	return allAlbums, nil
 }
+
+func (r *repository) FindBySlug(ctx context.Context, albumSlug string) (*Album, error) {
+	stmt, err := r.db.PrepareContext(ctx,
+		`SELECT mus.id, mus.name, mus.year, mus.type, mus.slug
+		 FROM music mus
+		 WHERE mus.slug=$1`)
+	if err != nil {
+		return nil, err
+	}
+	row := stmt.QueryRowContext(ctx, albumSlug)
+
+	var a Album
+	row.Scan(&a.Id, &a.Name, &a.Year, &a.MType, &a.Slug)
+	return &a, nil
+}

@@ -32,9 +32,21 @@ func (h *Handler) OnlySingles(w http.ResponseWriter, r *http.Request) {
 	util.DefaultHandle(w, r, res, err)
 }
 
-func (h *Handler) Songs(w http.ResponseWriter, r *http.Request) {
-	albumId := r.Context().Value("albumId").(int)
-	res, err := h.Service.SongsInAlbum(r.Context(), albumId)
+func (h *Handler) OneSongInAlbum(w http.ResponseWriter, r *http.Request) {
+	albumSlug := r.Context().Value("albumSlug").(string)
+	songSlug := r.Context().Value("songSlug").(string)
+	res, err := h.Service.SongInAlbum(r.Context(), albumSlug, songSlug)
+	util.DefaultHandle(w, r, res, err)
+}
+
+func (h *Handler) AllSongsInAlbum(w http.ResponseWriter, r *http.Request) {
+	albumSlug := r.Context().Value("albumSlug").(string)
+	res, err := h.Service.SongsInAlbum(r.Context(), albumSlug)
+	util.DefaultHandle(w, r, res, err)
+}
+
+func (h *Handler) AllSongs(w http.ResponseWriter, r *http.Request) {
+	res, err := h.Service.AllSongs(r.Context())
 	util.DefaultHandle(w, r, res, err)
 }
 

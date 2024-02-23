@@ -2,6 +2,7 @@ package albums
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -130,11 +131,39 @@ func (s *service) AllAlbums(c context.Context) ([]RsAlbum, error) {
 	return result, nil
 }
 
-func (s *service) SongsInAlbum(c context.Context, albumId int) ([]songs.Song, error) {
+func (s *service) SongInAlbum(c context.Context, albumSlug string, songSlug string) (*songs.Song, error) {
 	ctx, cancel := context.WithTimeout(c, s.timeout)
 	defer cancel()
 
-	songs, err := s.songs.FindAllForAlbum(ctx, albumId)
+	songs, err := s.songs.SongsForAlbum(ctx, albumSlug)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range songs {
+		if s.Slug == songSlug {
+			return &s, nil
+		}
+	}
+	return nil, errors.New("no such song")
+}
+
+func (s *service) SongsInAlbum(c context.Context, albumSlug string) ([]songs.Song, error) {
+	ctx, cancel := context.WithTimeout(c, s.timeout)
+	defer cancel()
+
+	songs, err := s.songs.SongsForAlbum(ctx, albumSlug)
+	if err != nil {
+		return nil, err
+	}
+	return songs, nil
+}
+
+func (s *service) AllSongs(c context.Context) ([]songs.SongWithAlbum, error) {
+	ctx, cancel := context.WithTimeout(c, s.timeout)
+	defer cancel()
+
+	songs, err := s.songs.AllSongs(ctx)
 	if err != nil {
 		return nil, err
 	}

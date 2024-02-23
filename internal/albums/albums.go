@@ -44,5 +44,8 @@ type Service interface {
 	OnlyAlbums(ctx context.Context) ([]RsAlbum, error)
 	OnlySingles(ctx context.Context) ([]RsAlbum, error)
 	Promo(ctx context.Context) (*RsAlbum, error)
-	SongsInAlbum(ctx context.Context, albumId int) ([]songs.Song, error)
+
+	AllSongs(ctx context.Context) ([]songs.SongWithAlbum, error)
+	SongsInAlbum(ctx context.Context, albumSlug string) ([]songs.Song, error)
+	SongInAlbum(ctx context.Context, albumSlug string, songSlug string) (*songs.Song, error)
 }

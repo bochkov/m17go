@@ -3,13 +3,11 @@ package router
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/bochkov/m17go/internal/albums"
 	"github.com/bochkov/m17go/internal/gigs"
 	"github.com/bochkov/m17go/internal/members"
-	"github.com/bochkov/m17go/internal/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -25,20 +23,35 @@ func InitRouter(albums *albums.Handler, gigs *gigs.Handler, members *members.Han
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Get("/api/v1/promo", albums.Promo)
-	r.Get("/api/v1/albums/all", albums.AllAlbums)
-	r.Get("/api/v1/albums", albums.OnlyAlbums)
-	r.Get("/api/v1/albums/singles", albums.OnlySingles)
-	r.Route("/api/v1/albums/{albumId:\\d+}/songs", func(r chi.Router) {
-		r.Use(AlbumCtx)
-		r.Get("/", albums.Songs)
+	r.Route("/api/v1/lyric", func(r chi.Router) {
+		r.Route("/{albumSlug:[a-z-]+}", func(r chi.Router) {
+			r.Use(AlbumCtx)
+			r.Route("/{songSlug:[a-z-]+}", func(r chi.Router) {
+				r.Use(SongCtx)
+				r.Get("/", albums.OneSongInAlbum)
+			})
+			r.Get("/", albums.AllSongsInAlbum)
+		})
+		r.Get("/", albums.AllSongs)
 	})
 
-	r.Get("/api/v1/gigs", gigs.FutureGigs)
-	r.Get("/api/v1/gigs/all", gigs.AllGigs)
+	r.Route("/api/v1/albums", func(r chi.Router) {
+		r.Get("/all", albums.AllAlbums)
+		r.Get("/singles", albums.OnlySingles)
+		r.Get("/", albums.OnlyAlbums)
+	})
 
-	r.Get("/api/v1/members", members.ActualMembers)
-	r.Get("/api/v1/members/all", members.AllMembers)
+	r.Route("/api/v1/gigs", func(r chi.Router) {
+		r.Get("/all", gigs.AllGigs)
+		r.Get("/", gigs.FutureGigs)
+	})
+
+	r.Route("/api/v1/members", func(r chi.Router) {
+		r.Get("/all", members.AllMembers)
+		r.Get("/", members.ActualMembers)
+	})
+
+	r.Get("/api/v1/promo", albums.Promo)
 
 	return r
 }
@@ -46,12 +59,17 @@ func InitRouter(albums *albums.Handler, gigs *gigs.Handler, members *members.Han
 func AlbumCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			id := chi.URLParam(r, "albumId")
-			albumId, err := strconv.Atoi(id)
-			if err != nil {
-				util.DefaultHandle(w, r, nil, err)
-			}
-			ctx := context.WithValue(r.Context(), "albumId", albumId)
+			albumSlug := chi.URLParam(r, "albumSlug")
+			ctx := context.WithValue(r.Context(), "albumSlug", albumSlug)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+}
+
+func SongCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			songSlug := chi.URLParam(r, "songSlug")
+			ctx := context.WithValue(r.Context(), "songSlug", songSlug)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 }
