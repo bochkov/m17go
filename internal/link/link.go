@@ -9,10 +9,10 @@ type ProviderId int
 
 const (
 	Yandex ProviderId = iota + 1
-	Apple
-	Spotify
-	Youtube
 	Vk
+	Spotify
+	Apple
+	Youtube
 )
 
 var ProviderMap = map[ProviderId][]string{
