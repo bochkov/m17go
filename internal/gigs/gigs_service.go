@@ -47,16 +47,12 @@ func (s *service) gigsFrom(c context.Context, since time.Time) ([]RsGig, error) 
 		if err != nil {
 			log.Fatalf("%v", err.Error())
 		} else {
-			dt := time.Date(
-				gig.Date.Year(), gig.Date.Month(), gig.Date.Day(),
-				gig.Time.Hour(), gig.Time.Minute(), gig.Time.Second(),
-				0, gig.Time.Location())
 			rg := &RsGig{
-				Id:    gig.Id,
-				Date:  dt,
-				Desc:  gig.Desc,
-				Url:   gig.Url,
-				Place: *place,
+				Id:          gig.Id,
+				DateTime:    gig.DateTime,
+				Description: gig.Description,
+				Url:         gig.Url,
+				Place:       *place,
 			}
 			result = append(result, *rg)
 		}

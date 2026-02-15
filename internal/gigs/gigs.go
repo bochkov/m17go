@@ -8,20 +8,19 @@ import (
 )
 
 type Gig struct {
-	Id    int       `json:"id" db:"id"`
-	Date  time.Time `json:"date" db:"dt"`
-	Time  time.Time `json:"time" db:"tm"`
-	Place int       `db:"place"`
-	Desc  string    `json:"desc" db:"desc"`
-	Url   string    `json:"url" db:"url"`
+	Id          int       `json:"id" db:"id"`
+	DateTime    time.Time `json:"datetime" db:"datetime"`
+	Place       int       `db:"place_id"`
+	Description string    `json:"description" db:"description"`
+	Url         string    `json:"url" db:"url"`
 }
 
 type RsGig struct {
-	Id    int         `json:"id"`
-	Date  time.Time   `json:"date"`
-	Desc  string      `json:"desc"`
-	Url   string      `json:"url"`
-	Place place.Place `json:"place"`
+	Id          int         `json:"id"`
+	DateTime    time.Time   `json:"datetime"`
+	Description string      `json:"description"`
+	Url         string      `json:"url"`
+	Place       place.Place `json:"place"`
 }
 
 type Repository interface {

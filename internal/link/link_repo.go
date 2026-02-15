@@ -14,17 +14,17 @@ func NewRepository(db db.DBTX) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) LinksFor(ctx context.Context, id int) ([]Link, error) {
+func (r *repository) LinksFor(ctx context.Context, albumId int) ([]Link, error) {
 	stmt, err := r.db.PrepareContext(ctx,
-		`SELECT ml.id, mp.id, mp.name, ml.url 
-		 FROM music_links ml, music_provs mp
-		 WHERE ml.provider = mp.id and ml.music = $1
-		 ORDER BY mp.id, ml.id`)
+		`SELECT id, url
+		FROM album_links
+		WHERE album_id = $1
+		ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := stmt.QueryContext(ctx, id)
+	rows, err := stmt.QueryContext(ctx, albumId)
 	if err != nil {
 		return nil, err
 	}
@@ -33,10 +33,11 @@ func (r *repository) LinksFor(ctx context.Context, id int) ([]Link, error) {
 	links := make([]Link, 0)
 	for rows.Next() {
 		var l Link
-		err := rows.Scan(&l.Id, &l.ProvId, &l.Provider, &l.Url)
+		err := rows.Scan(&l.Id, &l.Url)
 		if err != nil {
 			return nil, err
 		}
+		l.ProviderId = detectProvider(l.Url)
 		links = append(links, l)
 	}
 	return links, nil

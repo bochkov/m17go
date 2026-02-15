@@ -16,9 +16,9 @@ func NewRepository(db db.DBTX) Repository {
 
 func (r *repository) FindLatest(ctx context.Context) (*Album, error) {
 	row := r.db.QueryRowContext(ctx,
-		`SELECT mus.id, mus.name, mus.year, mus.type, mus.slug 
-		 FROM music mus 
-		 WHERE mus.id = (SELECT max(mu.id) FROM music mu WHERE mu.ignore=false)`)
+		`SELECT id, name, year, type, slug
+		FROM albums
+		WHERE id = (SELECT max(id) FROM albums WHERE ignore=false)`)
 
 	var a Album
 	if err := row.Scan(&a.Id, &a.Name, &a.Year, &a.MType, &a.Slug); err != nil {
@@ -29,10 +29,10 @@ func (r *repository) FindLatest(ctx context.Context) (*Album, error) {
 
 func (r *repository) FindAll(ctx context.Context) ([]Album, error) {
 	rows, err := r.db.QueryContext(ctx,
-		`SELECT mus.id, mus.name, mus.year, mus.type, mus.slug
-		 FROM music mus
-		 WHERE mus.ignore=false
-		 ORDER by mus.year desc, mus.id desc`)
+		`SELECT id, name, year, type, slug
+		FROM albums
+		WHERE ignore=false
+		ORDER by year desc, id desc`)
 	if err != nil {
 		return nil, err
 	}
@@ -49,9 +49,9 @@ func (r *repository) FindAll(ctx context.Context) ([]Album, error) {
 
 func (r *repository) FindBySlug(ctx context.Context, albumSlug string) (*Album, error) {
 	stmt, err := r.db.PrepareContext(ctx,
-		`SELECT mus.id, mus.name, mus.year, mus.type, mus.slug
-		 FROM music mus
-		 WHERE mus.slug=$1`)
+		`SELECT id, name, year, type, slug
+		FROM albums
+		WHERE slug=$1`)
 	if err != nil {
 		return nil, err
 	}

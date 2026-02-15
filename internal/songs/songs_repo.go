@@ -16,11 +16,11 @@ func NewRepository(db db.DBTX) Repository {
 
 func (r *repository) SongsForAlbum(ctx context.Context, albumSlug string) ([]Song, error) {
 	stmt, err := r.db.PrepareContext(ctx,
-		`SELECT s.id, al.pos, s.song_name, s.slug, l.lyrics 
-		 FROM songs s, lyrics l, music m, song_on_album al 
-		 WHERE m.id = al.music_id and al.song_id = s.id and s.id = l.song_id 
-		 AND m.slug = $1
-		 ORDER BY al.pos`)
+		`SELECT s.id, soa.position, s.name, s.slug, l.text
+		FROM songs s, lyrics l, albums a, songs_on_albums soa
+		WHERE a.id = soa.album_id and soa.song_id = s.id and s.id = l.song_id
+		AND a.slug = $1
+		ORDER BY soa.position`)
 	if err != nil {
 		return nil, err
 	}
@@ -44,18 +44,18 @@ func (r *repository) SongsForAlbum(ctx context.Context, albumSlug string) ([]Son
 
 func (r *repository) AllSongs(ctx context.Context) ([]SongWithAlbum, error) {
 	rows, err := r.db.QueryContext(ctx,
-		`SELECT s.id, s.song_name, s.slug, soa.pos, l.lyrics, m.name, m.slug, m.year 
-		 FROM songs s, lyrics l, music m, song_on_album soa 
-		 WHERE s.id = l.song_id
-			AND m.id = (
-				SELECT soa2.music_id 
-				FROM song_on_album soa2, music m2 
-				WHERE m2.id = soa2.music_id AND soa2.song_id = s.id AND m2.type = 1 AND m2.ignore = false
-				ORDER BY m2.year 
+		`SELECT s.id, s.name, s.slug, soa.position, l.text, a.name, a.slug, a.year
+		FROM songs s, lyrics l, albums a, songs_on_albums soa
+		WHERE s.id = l.song_id
+			AND a.id = (
+				SELECT soa2.album_id
+				FROM songs_on_albums soa2, albums a2
+				WHERE a2.id = soa2.album_id AND soa2.song_id = s.id AND a2.type = 'album' AND a2.ignore = false
+				ORDER BY a2.year
 				LIMIT 1
 			)
-			AND soa.song_id = s.id AND soa.music_id = m.id
-		ORDER BY m.year, soa.pos;`)
+			AND soa.song_id = s.id AND soa.album_id = a.id
+		ORDER BY a.year, soa.position`)
 	if err != nil {
 		return nil, err
 	}

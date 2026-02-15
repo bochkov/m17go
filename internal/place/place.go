@@ -15,5 +15,4 @@ type Repository interface {
 	FindById(ctx context.Context, id int) (*Place, error)
 }
 
-type Service interface {
-}
+type Service any

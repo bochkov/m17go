@@ -16,10 +16,10 @@ func NewRepository(db db.DBTX) Repository {
 
 func (r *repository) findAll(ctx context.Context) ([]Member, error) {
 	rows, err := r.db.QueryContext(ctx,
-		`SELECT me.id, me.name, inst.text as instrument, me.actual 
-		 FROM members me, instrument inst 
-		 WHERE me.instrument = inst.id 
-		 ORDER BY me.weight`)
+		`SELECT me.id, me.ru_name, inst.ru_name as instrument, me.actual
+		FROM members me, instruments inst
+		WHERE me.instrument_id = inst.id
+		ORDER BY me.weight`)
 	if err != nil {
 		return nil, err
 	}

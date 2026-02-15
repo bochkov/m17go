@@ -6,9 +6,9 @@ import (
 
 type Member struct {
 	Id         int    `db:"id"`
-	Name       string `db:"name"`
+	Name       string `db:"ru_name"`
 	Actual     bool   `db:"actual"`
-	Instrument string `db:"instrument"`
+	Instrument string `db:"instrument_id"`
 }
 
 type RsMember struct {

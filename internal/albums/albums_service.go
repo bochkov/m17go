@@ -65,7 +65,7 @@ func (s *service) convertLinks(ctx context.Context, albumId int) ([]link.RsLink,
 
 }
 
-func (s *service) albumsOf(c context.Context, mType MType) ([]RsAlbum, error) {
+func (s *service) albumsOf(c context.Context, mType string) ([]RsAlbum, error) {
 	ctx, cancel := context.WithTimeout(c, s.timeout)
 	defer cancel()
 
@@ -96,11 +96,11 @@ func (s *service) albumsOf(c context.Context, mType MType) ([]RsAlbum, error) {
 }
 
 func (s *service) OnlyAlbums(ctx context.Context) ([]RsAlbum, error) {
-	return s.albumsOf(ctx, AlbumType)
+	return s.albumsOf(ctx, "album")
 }
 
 func (s *service) OnlySingles(ctx context.Context) ([]RsAlbum, error) {
-	return s.albumsOf(ctx, SingleType)
+	return s.albumsOf(ctx, "single")
 }
 
 func (s *service) AllAlbums(c context.Context) ([]RsAlbum, error) {

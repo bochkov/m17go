@@ -17,10 +17,10 @@ func NewRepository(db db.DBTX) Repository {
 
 func (r *repository) findSince(ctx context.Context, since time.Time) ([]Gig, error) {
 	stmt, err := r.db.PrepareContext(ctx,
-		`SELECT g.id, g.dt, g.tm, g.place, g.desc, g.url
-		FROM gigs g 
-		WHERE g.dt >= $1 
-		ORDER BY g.dt desc, g.tm`)
+		`SELECT id, datetime, place_id, description, url
+		FROM gigs
+		WHERE datetime >= $1
+		ORDER BY datetime desc;`)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (r *repository) findSince(ctx context.Context, since time.Time) ([]Gig, err
 	result := make([]Gig, 0)
 	for rows.Next() {
 		var g Gig
-		rows.Scan(&g.Id, &g.Date, &g.Time, &g.Place, &g.Desc, &g.Url)
+		rows.Scan(&g.Id, &g.DateTime, &g.Place, &g.Description, &g.Url)
 		result = append(result, g)
 	}
 	return result, nil
